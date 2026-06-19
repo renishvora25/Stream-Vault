@@ -42,7 +42,7 @@ const userSchema = new Schema({
     },
     refreshToken:{
         type : String,
-        required : true
+        default : ""
     }
 },
 {
@@ -52,9 +52,8 @@ const userSchema = new Schema({
 // encryption and decryption of password
 userSchema.pre("save",async function (next){
     if(this.isModified("password")){
-        this.password=bcrypt.hash(this.password,7);
+        this.password=await bcrypt.hash(this.password,10);
     }
-    next();
 })
 
 userSchema.methods.isPasswordCorrect = async function(password){
