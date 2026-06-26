@@ -1,50 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import VideoCard from '../components/VideoCard.jsx';
 
-const mockVideos = [
-  {
-    _id: "1",
-    title: "The Evolution of Archival Film Restoration Techniques",
-    thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=500&auto=format&fit=crop",
-    duration: "12:45",
-    views: "45K views",
-    createdAt: "2 days ago",
-    owner: {
-      username: "cinemahistorians",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&auto=format&fit=crop"
-    }
-  },
-  {
-    _id: "2",
-    title: "Shadow Play: Mastering Dynamic Cinematic Lighting Setups",
-    thumbnail: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=500&auto=format&fit=crop",
-    duration: "08:22",
-    views: "128K views",
-    createdAt: "1 week ago",
-    owner: {
-      username: "design_theory",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&auto=format&fit=crop"
-    }
-  },
-  {
-    _id: "3",
-    title: "Inside the Vault: Preserving 100-Year-Old Film Rolls",
-    thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop",
-    duration: "24:10",
-    views: "93K views",
-    createdAt: "3 days ago",
-    owner: {
-      username: "archive_proj",
-      avatar: "https://images.unsplash.com/photo-1628157582853-a796fa650a6a?w=80&auto=format&fit=crop"
-    }
-  }
-];
-
 export default function Home() {
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        const response = await axios.get('/api/v1/videos', {
+          withCredentials: true
+        });
+        
+        const fetchedVideos = response.data?.data?.docs || response.data?.data || [];
+        setVideos(fetchedVideos);
+        
+      } catch (err) {
+        console.error("Failed to fetch home feed:", err);
+        setError("Could not load the video feed right now. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="w-full h-[60vh] flex flex-col justify-center items-center">
+        <div className="w-10 h-10 border-4 border-[#C85C2C] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 text-sm font-medium">Loading archives...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full flex justify-center mt-10">
+        <div className="bg-red-50 text-red-600 px-6 py-4 rounded-xl font-medium border border-red-100 shadow-sm text-sm">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (videos.length === 0) {
+    return (
+      <div className="w-full h-[50vh] flex flex-col justify-center items-center bg-white rounded-2xl shadow-sm border border-gray-100">
+        <p className="text-gray-900 font-bold text-lg mb-2">The vault is currently empty.</p>
+        <p className="text-gray-500 text-sm">Be the first to upload a video!</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-6 gap-y-8">
-        {mockVideos.map((video) => (
+    <div className="w-full pb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
+        {videos.map((video) => (
           <VideoCard key={video._id} video={video} />
         ))}
       </div>

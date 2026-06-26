@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaLock, FaEnvelope, FaImage } from 'react-icons/fa';
+import { FaUser, FaLock, FaEnvelope, FaImage, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,8 +9,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // LOGIN 
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
 
+  // LOGIN 
   const [loginData, setLoginData] = useState({ identifier: '', password: '' });
 
   const handleLoginSubmit = async (e) => {
@@ -38,7 +40,6 @@ export default function Login() {
   };
 
   // REGISTRATION
-
   const [regData, setRegData] = useState({ fullname: '', username: '', email: '', password: '' });
   const [avatarFile, setAvatarFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
@@ -73,6 +74,9 @@ export default function Login() {
       if (response.data.success) {
         setIsSignUp(false);
         setError('');
+        setRegData({ fullname: '', username: '', email: '', password: '' });
+        setAvatarFile(null);
+        setCoverFile(null);
         alert("Registration successful! Please login.");
       }
     } catch (err) {
@@ -87,7 +91,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-sans selection:bg-[#C85C2C] selection:text-white">
       <div className="relative w-[850px] h-[600px] overflow-hidden rounded-[30px] bg-white shadow-[0_0_30px_rgba(0,0,0,0.15)]">
         
-        {/* SIGN IN FORM */}
+        {/* SIGN IN FORM*/}
         <div className={`absolute top-0 left-0 w-1/2 h-full flex flex-col justify-center px-10 transition-all duration-700 ease-in-out z-10 
           ${isSignUp ? 'translate-x-[20%] opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'}`}>
           <div className="w-full max-w-[320px] mx-auto text-center">
@@ -107,17 +111,25 @@ export default function Login() {
                 />
                 <FaUser className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
               </div>
+              
               <div className="relative w-full h-[50px]">
                 <input 
-                  type="password" 
+                  type={showLoginPassword ? "text" : "password"} 
                   placeholder="Password" 
                   value={loginData.password}
                   onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-                  className="w-full h-full bg-gray-100 border-none outline-none rounded-lg px-[20px] text-sm text-gray-800 font-medium focus:ring-2 focus:ring-[#C85C2C] transition-all" 
+                  className="w-full h-full bg-gray-100 border-none outline-none rounded-lg pl-[20px] pr-[45px] text-sm text-gray-800 font-medium focus:ring-2 focus:ring-[#C85C2C] transition-all" 
                   required 
                 />
-                <FaLock className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                <button 
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showLoginPassword ? <FaEyeSlash className="text-lg" /> : <FaEye className="text-lg" />}
+                </button>
               </div>
+
               <button disabled={loading} type="submit" className="w-full h-[48px] bg-[#C85C2C] text-white text-base font-semibold rounded-lg hover:bg-[#a64b23] transition-colors duration-300 mt-2 disabled:opacity-70">
                 {loading ? 'Logging in...' : 'Login'}
               </button>
@@ -125,7 +137,8 @@ export default function Login() {
           </div>
         </div>
 
-        {/* SIGN UP FORM */}
+        {/* SIGN UP FORM*/}
+
         <div className={`absolute top-0 left-0 w-1/2 h-full flex flex-col justify-center px-8 transition-all duration-700 ease-in-out z-10 
           ${isSignUp ? 'translate-x-[100%] opacity-100' : 'translate-x-[80%] opacity-0 pointer-events-none'}`}>
           <div className="w-full max-w-[320px] mx-auto text-center">
@@ -146,9 +159,24 @@ export default function Login() {
                 <input type="email" placeholder="Email *" value={regData.email} onChange={(e) => setRegData({...regData, email: e.target.value})} className="w-full h-full bg-gray-100 border-none outline-none rounded-lg px-[16px] text-sm text-gray-800 focus:ring-2 focus:ring-[#C85C2C]" required />
                 <FaEnvelope className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
+              
+              {/* Registration Password Input with Toggle */}
               <div className="relative w-full h-[42px]">
-                <input type="password" placeholder="Password *" value={regData.password} onChange={(e) => setRegData({...regData, password: e.target.value})} className="w-full h-full bg-gray-100 border-none outline-none rounded-lg px-[16px] text-sm text-gray-800 focus:ring-2 focus:ring-[#C85C2C]" required />
-                <FaLock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input 
+                  type={showRegPassword ? "text" : "password"} 
+                  placeholder="Password *" 
+                  value={regData.password} 
+                  onChange={(e) => setRegData({...regData, password: e.target.value})} 
+                  className="w-full h-full bg-gray-100 border-none outline-none rounded-lg pl-[16px] pr-[40px] text-sm text-gray-800 focus:ring-2 focus:ring-[#C85C2C]" 
+                  required 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowRegPassword(!showRegPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showRegPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </div>
               
               <div className="space-y-0.5">
@@ -173,8 +201,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* SLIDING OVERLAY PANEL                     */}
-
+        {/* SLIDING OVERLAY PANEL */}
         <div className={`absolute top-0 w-1/2 h-full bg-[#C85C2C] z-20 transition-all duration-700 ease-in-out flex flex-col justify-center items-center text-center overflow-hidden
           ${isSignUp ? 'left-0 rounded-r-[150px]' : 'left-[50%] rounded-l-[150px]'}`}>
           

@@ -6,34 +6,41 @@ import {
     publishAVideo,
     togglePublishStatus,
     updateVideo,
+    getSubscribedVideos,
+    incrementVideoViews
 } from "../controllers/video.controllers.js"
-import {verifyJWT} from "../middlewares/auth.middleware.js"
+import { verifyJWT, optionalAuth } from "../middlewares/auth.middleware.js"
 import {upload} from "../middlewares/multer.middlewares.js"
 
 const router = Router();
-router.use(verifyJWT); 
 
-router.route("/").get(getAllVideos).post(
-        upload.fields([
-            {
-                name: "videoFile",
-                maxCount: 1,
-            },
-            {
-                name: "thumbnail",
-                maxCount: 1,
-            },
-            
-        ]),
-        publishAVideo
+// ─────────────────────────────────────────────────────────────────────────────
+// IMPORTANT: Static routes MUST come before dynamic /:videoId routes
+// otherwise Express will match /:videoId for /subscriptions, /toggle/publish/...
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Static routes first
+router.route("/subscriptions").get(verifyJWT, getSubscribedVideos);
+
+router.route("/toggle/publish/:videoId").patch(verifyJWT, togglePublishStatus);
+
+// Public + authenticated browse/create
+router.route("/").get(optionalAuth, getAllVideos).post(
+    verifyJWT,
+    upload.fields([
+        { name: "videoFile", maxCount: 1 },
+        { name: "thumbnail", maxCount: 1 },
+    ]),
+    publishAVideo
 );
+
+// Dynamic /:videoId routes LAST so they don't swallow the static ones above
+router.route("/:videoId/views").patch(optionalAuth, incrementVideoViews);
 
 router
     .route("/:videoId")
-    .get(getVideoById)
-    .delete(deleteVideo)
-    .patch(upload.single("thumbnail"), updateVideo);
-
-router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
+    .get(optionalAuth, getVideoById)
+    .delete(verifyJWT, deleteVideo)
+    .patch(verifyJWT, upload.single("thumbnail"), updateVideo);
 
 export default router

@@ -472,6 +472,33 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     });
 })
 
+
+const searchUsers = asyncHandler(async (req, res) => {
+    const { q } = req.query;
+
+    if (!q || q.trim().length < 1) {
+        return res.status(200).json({ success: true, data: [], message: "No query provided" });
+    }
+
+    const regex = new RegExp(q.trim(), 'i'); // case-insensitive partial match
+
+    const users = await User.find({
+        $or: [
+            { username: regex },
+            { fullname: regex }
+        ]
+    })
+    .select('username fullname avatar')
+    .limit(8)
+    .lean();
+
+    return res.status(200).json({
+        success: true,
+        data: users,
+        message: "Users found"
+    });
+})
+
 export {
     userRegister,
     loginUser,
@@ -483,5 +510,6 @@ export {
     updateUserAvatar,
     updateUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    searchUsers
 }

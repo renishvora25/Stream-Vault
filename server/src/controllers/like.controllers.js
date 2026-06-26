@@ -1,6 +1,7 @@
 import mongoose, { isValidObjectId } from "mongoose"
 import { Like } from "../models/like.model.js"
 import asyncHandler  from "../utils/asyncHandler.js"
+
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
@@ -16,24 +17,26 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
         likedBy: req.user._id
     });
 
+    let isLiked;
     if (existingLike) {
         await Like.findByIdAndDelete(existingLike._id);
-        return res.status(200).json({
-            success: true,
-            data: { isLiked: false },
-            message: "Removed like from video"
-        });
+        isLiked = false;
     } else {
-        const newLike = await Like.create({
+        await Like.create({
             video: videoId,
             likedBy: req.user._id
         });
-        return res.status(200).json({
-            success: true,
-            data: { isLiked: true },
-            message: "Liked video successfully"
-        });
+        isLiked = true;
     }
+
+    // Return updated like count alongside isLiked flag
+    const likeCount = await Like.countDocuments({ video: videoId });
+
+    return res.status(200).json({
+        success: true,
+        data: { isLiked, likeCount },
+        message: isLiked ? "Liked video successfully" : "Removed like from video"
+    });
 })
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
@@ -119,7 +122,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         }
     });
 
-    const formattedVideos = likedVideos.map(like => like.video);
+    const formattedVideos = likedVideos.map(like => like.video).filter(Boolean);
 
     return res.status(200).json({
         success: true,
@@ -128,9 +131,44 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     });
 })
 
+/**
+ * GET /count/v/:videoId
+ * Returns: { likeCount, isLiked } — isLiked is true if the logged-in user liked this video.
+ * Requires auth (verifyJWT).
+ */
+const getVideoLikeStatus = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!isValidObjectId(videoId)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid video ID"
+        });
+    }
+
+    // Run both queries in parallel for speed
+    const [likeCount, userLike] = await Promise.all([
+        Like.countDocuments({ video: new mongoose.Types.ObjectId(videoId) }),
+        Like.findOne({
+            video: new mongoose.Types.ObjectId(videoId),
+            likedBy: req.user._id
+        })
+    ]);
+
+    return res.status(200).json({
+        success: true,
+        data: {
+            likeCount,
+            isLiked: !!userLike
+        },
+        message: "Like status fetched successfully"
+    });
+})
+
 export {
     toggleCommentLike,
     toggleTweetLike,
     toggleVideoLike,
-    getLikedVideos
+    getLikedVideos,
+    getVideoLikeStatus
 }

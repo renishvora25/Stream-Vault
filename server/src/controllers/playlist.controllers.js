@@ -42,8 +42,45 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         });
     }
 
-    const playlists = await Playlist.find({ owner: userId })
-        .sort({ createdAt: -1 });
+    // Use aggregation to get playlist + count + cover thumbnail in one query
+    const playlists = await Playlist.aggregate([
+        { $match: { owner: new mongoose.Types.ObjectId(userId) } },
+        { $sort: { createdAt: -1 } },
+        {
+            // Lookup only the first video to get its thumbnail
+            $lookup: {
+                from: "videos",
+                let: { videoIds: "$videos" },
+                pipeline: [
+                    { $match: { $expr: { $in: ["$_id", { $ifNull: ["$$videoIds", []] }] } } },
+                    { $sort: { createdAt: -1 } },
+                    { $limit: 1 },
+                    { $project: { thumbnail: 1, title: 1 } }
+                ],
+                as: "firstVideoData"
+            }
+        },
+        {
+            $addFields: {
+                videoCount: { $size: { $ifNull: ["$videos", []] } },
+                coverThumbnail: { $arrayElemAt: ["$firstVideoData.thumbnail", 0] },
+                coverTitle: { $arrayElemAt: ["$firstVideoData.title", 0] }
+            }
+        },
+        {
+            $project: {
+                name: 1,
+                description: 1,
+                videoCount: 1,
+                coverThumbnail: 1,
+                coverTitle: 1,
+                owner: 1,
+                createdAt: 1,
+                updatedAt: 1
+                // 'videos' array not included — saves bandwidth on list view
+            }
+        }
+    ]);
 
     return res.status(200).json({
         success: true,
@@ -63,7 +100,13 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     }
 
     const playlist = await Playlist.findById(playlistId)
-        .populate("videos")
+        .populate({
+            path: "videos",
+            populate: {
+                path: "owner",
+                select: "fullName username avatar"
+            }
+        })
         .populate("owner", "fullName username avatar");
 
     if (!playlist) {

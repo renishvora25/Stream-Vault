@@ -1,6 +1,7 @@
 import mongoose, { isValidObjectId } from "mongoose"
 import { Video } from "../models/video.model.js"
 import { User } from "../models/user.model.js"
+import { Subscription } from "../models/subscription.model.js"
 import asyncHandler  from "../utils/asyncHandler.js"
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 
@@ -245,11 +246,55 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     });
 })
 
+const getSubscribedVideos = asyncHandler(async (req, res) => {
+    const subscriberId = req.user._id;
+
+    const subscriptions = await Subscription.find({ subscriber: subscriberId });
+    
+    const subscribedChannelIds = subscriptions.map(sub => sub.channel);
+
+    const videos = await Video.find({
+        owner: { $in: subscribedChannelIds },
+        isPublished: true
+    })
+    .populate("owner", "fullName username avatar")
+    .sort({ createdAt: -1 })
+    .limit(50);
+
+    return res.status(200).json({
+        success: true,
+        data: videos,
+        message: "Subscribed videos fetched successfully"
+    });
+})
+
+const incrementVideoViews = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!isValidObjectId(videoId)) {
+        return res.status(400).json({ success: false, message: "Invalid video ID" });
+    }
+
+    const updatedVideo = await Video.findByIdAndUpdate(
+        videoId,
+        { $inc: { views: 1 } },
+        { new: true }
+    );
+
+    return res.status(200).json({
+        success: true,
+        data: updatedVideo,
+        message: "Views incremented successfully"
+    });
+});
+
 export {
     getAllVideos,
     publishAVideo,
     getVideoById,
     updateVideo,
     deleteVideo,
-    togglePublishStatus
+    togglePublishStatus,
+    getSubscribedVideos,
+    incrementVideoViews
 }

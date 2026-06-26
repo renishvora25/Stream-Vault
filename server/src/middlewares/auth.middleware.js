@@ -31,3 +31,19 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     }
 
 })
+
+// Like verifyJWT but does NOT block the request if there is no token.
+// Sets req.user if a valid token is found, otherwise sets req.user = null and continues.
+export const optionalAuth = async (req, res, next) => {
+    try {
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("bearer ","");
+        if (!token) { req.user = null; return next(); }
+
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const user = await User.findById(decodedToken?._id).select("-password -refreshToken");
+        req.user = user || null;
+    } catch (_) {
+        req.user = null;
+    }
+    next();
+};

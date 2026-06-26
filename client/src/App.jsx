@@ -4,7 +4,11 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx'; 
 import Dashboard from './pages/Dashboard.jsx';
-import Profile from './pages/Profile.jsx'; // 👈 1. Import the Profile page
+import Profile from './pages/Profile.jsx'; 
+import Subscriptions from './pages/Subscriptions.jsx';
+import Watch from './pages/Watch.jsx';
+import Playlists from './pages/Playlist.jsx';
+import PlaylistDetail from './pages/PlaylistDetail.jsx';
 
 const Placeholder = ({ title }) => (
   <div className="w-full">
@@ -22,13 +26,21 @@ function App() {
         {/* Main App Routes wrapped in the Layout */}
         <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/watch/:videoId" element={<Watch />} /> 
             <Route path="/profile" element={<Profile />} /> 
-            <Route path="/subscriptions" element={<Placeholder title="Subscriptions" />} />
-            <Route path="/playlists" element={<Placeholder title="Playlists" />} />
+            {/* /user/:username — view ANY user's public profile */}
+            <Route path="/user/:username" element={<Profile />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/playlists" element={<Playlists />} />
+            <Route path="/playlists/:playlistId" element={<PlaylistDetail />} />
             <Route path="/history" element={<Placeholder title="History" />} />
             <Route path="/settings" element={<Placeholder title="Settings" />} />
             <Route path="/help" element={<Placeholder title="Help" />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
         </Route>
       </Routes>
     </BrowserRouter>
