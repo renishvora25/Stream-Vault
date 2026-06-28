@@ -4,7 +4,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import {
   FaHome, FaUsers, FaList, FaHistory, FaCog, FaQuestionCircle,
-  FaSignOutAlt, FaSearch, FaUpload, FaBell, FaUserCircle, FaTimes
+  FaSignOutAlt, FaSearch, FaUpload, FaBell, FaUserCircle, FaTimes, FaVideo
 } from 'react-icons/fa';
 import UploadVideoModal from './Upload.jsx';
 
@@ -33,7 +33,6 @@ export default function AppLayout() {
       .catch(() => {});
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -100,13 +99,11 @@ export default function AppLayout() {
         <UploadVideoModal onClose={() => setIsUploadModalOpen(false)} />
       )}
 
-      {/* ──── Top Bar ──────────────────────────────────────────────────────── */}
       <header className="bg-black text-white h-16 min-h-16 flex items-center justify-between px-6 z-30 shadow-md">
         <Link to="/" className="text-xl font-bold tracking-tight select-none cursor-pointer flex-shrink-0">
           Stream<span className="text-[#C85C2C]">Vault</span>
         </Link>
 
-        {/* Global Search */}
         <div ref={searchRef} className="flex-1 max-w-xl mx-6 relative">
           <form onSubmit={handleSearchSubmit} className="relative">
             <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 text-sm pointer-events-none" />
@@ -131,7 +128,6 @@ export default function AppLayout() {
             )}
           </form>
 
-          {/* Suggestions Dropdown */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
               {suggestions.map((u, idx) => (
@@ -163,7 +159,6 @@ export default function AppLayout() {
           )}
         </div>
 
-        {/* Right side buttons */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <button
             onClick={() => setIsUploadModalOpen(true)}
@@ -172,10 +167,7 @@ export default function AppLayout() {
             <FaUpload /> Upload
           </button>
 
-          <button className="text-neutral-400 hover:text-white relative p-1 transition-colors">
-            <FaBell className="text-lg" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-[#C85C2C] rounded-full" />
-          </button>
+
 
           <Link
             to="/profile"
@@ -191,7 +183,6 @@ export default function AppLayout() {
         </div>
       </header>
 
-      {/* ──── Body ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-60 bg-white border-r border-gray-100 flex flex-col justify-between p-4 h-full">
           <div className="space-y-6">
@@ -203,6 +194,7 @@ export default function AppLayout() {
                   { to: '/subscriptions', icon: <FaUsers className="text-lg" />, label: 'Subscriptions', exact: false },
                   { to: '/playlists', icon: <FaList className="text-lg" />, label: 'Playlists', exact: false },
                   { to: '/history', icon: <FaHistory className="text-lg" />, label: 'History', exact: false },
+                  { to: '/dashboard', icon: <FaVideo className="text-lg" />, label: 'Dashboard', exact: false },
                 ].map(({ to, icon, label, exact }) => {
                   const isActive = exact
                     ? location.pathname === to

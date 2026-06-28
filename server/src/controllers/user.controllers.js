@@ -1,6 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
 import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js";
+import mongoose from "mongoose";
 
 const generateTokens = async (userId) => {
     try {
@@ -464,9 +465,20 @@ const getWatchHistory = asyncHandler(async(req, res) => {
         });
     }
 
+    // Map the aggregation output to match the original watchHistory order, then reverse (newest first)
+    const historyMap = {};
+    user[0].watchHistory.forEach(video => {
+        historyMap[video._id.toString()] = video;
+    });
+
+    const orderedHistory = req.user.watchHistory
+        .map(id => historyMap[id.toString()])
+        .filter(Boolean)
+        .reverse();
+
     return res.status(200).json({
         statusCode: 200,
-        data: user[0].watchHistory,
+        data: orderedHistory,
         message: "Watch history fetched successfully",
         success: true
     });

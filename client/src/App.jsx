@@ -9,6 +9,9 @@ import Subscriptions from './pages/Subscriptions.jsx';
 import Watch from './pages/Watch.jsx';
 import Playlists from './pages/Playlist.jsx';
 import PlaylistDetail from './pages/PlaylistDetail.jsx';
+import History from './pages/History.jsx';
+import Settings from './pages/Settings.jsx';
+import Help from './pages/Help.jsx';
 
 const Placeholder = ({ title }) => (
   <div className="w-full">
@@ -33,9 +36,9 @@ function App() {
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/playlists/:playlistId" element={<PlaylistDetail />} />
-            <Route path="/history" element={<Placeholder title="History" />} />
-            <Route path="/settings" element={<Placeholder title="Settings" />} />
-            <Route path="/help" element={<Placeholder title="Help" />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/help" element={<Help />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

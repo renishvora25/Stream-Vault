@@ -7,11 +7,10 @@ import VideoCard from '../components/VideoCard.jsx';
 const defaultAvatar = 'https://ui-avatars.com/api/?name=User&background=f3f4f6&color=374151';
 
 export default function UserProfile() {
-  const { username } = useParams();          // present when visiting /user/:username
+  const { username } = useParams();          
   const navigate = useNavigate();
-
-  const [profileUser, setProfileUser] = useState(null);  // the channel being viewed
-  const [currentUser, setCurrentUser] = useState(null);  // logged-in viewer
+  const [profileUser, setProfileUser] = useState(null);  
+  const [currentUser, setCurrentUser] = useState(null);  
   const [videos, setVideos] = useState([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState(0);
@@ -24,23 +23,25 @@ export default function UserProfile() {
       try {
         setLoading(true);
         setError('');
-
-        // 1. Get logged-in user (if any)
+         
         let loggedInUser = null;
         try {
-          const meRes = await axios.get('/api/v1/users/current-user', { withCredentials: true });
+          const meRes = await axios.get('/api/v1/users/current-user', {
+            withCredentials: true,
+          });
+
           loggedInUser =
             meRes.data?.user ||
             meRes.data?.data?.user ||
             meRes.data?.data ||
             null;
-          if (!loggedInUser?._id) loggedInUser = null;
-          setCurrentUser(loggedInUser);
-        } catch (_) { /* guest */ }
 
-        // 2. Determine which username to load
-        //    - /user/:username  → use the param
-        //    - /profile         → use logged-in user's username
+          if (!loggedInUser?._id) loggedInUser = null;
+
+          setCurrentUser(loggedInUser);
+        } catch (_) {
+          loggedInUser = null;
+        }
         let targetUsername = username;
         if (!targetUsername) {
           if (!loggedInUser) {
@@ -50,8 +51,6 @@ export default function UserProfile() {
           targetUsername = loggedInUser.username;
         }
 
-        // 3. Fetch channel profile via existing endpoint
-        //    GET /api/v1/users/c/:username  — returns { data: { fullName, username, avatar, coverImage, subscribersCount, isSubscribed } }
         const channelRes = await axios.get(`/api/v1/users/c/${targetUsername}`, { withCredentials: true });
         const channelData = channelRes.data?.data;
         if (!channelData) { setError('User not found.'); return; }
@@ -61,7 +60,6 @@ export default function UserProfile() {
         setIsSubscribed(!!channelData.isSubscribed);
         setIsOwnProfile(loggedInUser?.username?.toLowerCase() === targetUsername.toLowerCase());
 
-        // 4. Fetch this user's videos
         try {
           const videosRes = await axios.get(`/api/v1/videos?userId=${channelData._id}`, { withCredentials: true });
           const raw = videosRes.data?.data;
@@ -96,14 +94,12 @@ export default function UserProfile() {
     }
   };
 
-  // ——— Loading ———
   if (loading) return (
     <div className="w-full h-[60vh] flex justify-center items-center">
       <div className="w-10 h-10 border-4 border-[#C85C2C] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
-  // ——— Error ———
   if (error || !profileUser) return (
     <div className="text-center py-16 max-w-md mx-auto mt-10">
       <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -119,28 +115,22 @@ export default function UserProfile() {
 
   return (
     <div className="w-full -mt-6 lg:-mt-8 -mx-6 lg:-mx-8 pb-10">
-
-      {/* ——— Cover Image ——— */}
-      <div className="w-full h-44 sm:h-56 overflow-hidden relative bg-neutral-900">
-        {profileUser.coverImage ? (
+      <div className="w-full h-48 sm:h-64 md:h-72 overflow-hidden relative bg-black flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-white/10 font-black tracking-[0.3em] text-xs sm:text-sm uppercase select-none">
+            Stream Vault
+          </span>
+        </div>
+        {profileUser.coverImage && (
           <img
             src={profileUser.coverImage}
             alt="Channel banner"
-            className="w-full h-full object-cover"
+            className="relative z-10 w-full h-full object-contain object-center"
           />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] flex items-center justify-center">
-            <span className="text-white/10 font-black tracking-[0.3em] text-xs uppercase select-none">
-              Stream Vault
-            </span>
-          </div>
         )}
       </div>
 
-      {/* ——— Avatar + Info ——— */}
       <div className="px-4 sm:px-8 flex flex-col sm:flex-row items-center sm:items-end gap-4 relative z-10 -mt-14 sm:-mt-16 mb-6">
-
-        {/* Avatar */}
         <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white p-1 shadow-xl border-4 border-white overflow-hidden flex-shrink-0">
           {profileUser.avatar ? (
             <img
@@ -153,8 +143,6 @@ export default function UserProfile() {
             <FaUserCircle className="w-full h-full text-gray-300" />
           )}
         </div>
-
-        {/* Name + Stats + Subscribe */}
         <div className="flex-1 flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-1">
           <div className="text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight leading-none">
@@ -174,8 +162,6 @@ export default function UserProfile() {
               </span>
             </div>
           </div>
-
-          {/* Subscribe / Edit Profile button */}
           {!isOwnProfile ? (
             <button
               onClick={handleToggleSubscribe}
@@ -200,7 +186,6 @@ export default function UserProfile() {
 
       <hr className="border-gray-200 mb-8 mx-4 sm:mx-8" />
 
-      {/* ——— Videos ——— */}
       <div className="px-4 sm:px-8">
         <h3 className="text-base font-bold text-gray-900 mb-5 tracking-tight uppercase border-b-2 border-[#C85C2C] w-max pb-1.5">
           Videos

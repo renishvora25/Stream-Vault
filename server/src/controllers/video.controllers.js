@@ -127,6 +127,22 @@ const getVideoById = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, message: "Video not found" });
     }
 
+    // Add to watch history if user is logged in
+    if (req.user) {
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $pull: { watchHistory: videoId }
+            }
+        );
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $push: { watchHistory: videoId }
+            }
+        );
+    }
+
     return res.status(200).json({
         success: true,
         data: video,
@@ -280,6 +296,22 @@ const incrementVideoViews = asyncHandler(async (req, res) => {
         { $inc: { views: 1 } },
         { new: true }
     );
+
+    // Add to watch history if user is logged in
+    if (req.user) {
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $pull: { watchHistory: videoId }
+            }
+        );
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $push: { watchHistory: videoId }
+            }
+        );
+    }
 
     return res.status(200).json({
         success: true,

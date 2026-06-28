@@ -76,8 +76,8 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
                 coverTitle: 1,
                 owner: 1,
                 createdAt: 1,
-                updatedAt: 1
-                // 'videos' array not included — saves bandwidth on list view
+                updatedAt: 1,
+                videos: 1 // We need videos array to check if a video is inside the playlist
             }
         }
     ]);

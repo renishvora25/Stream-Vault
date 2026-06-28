@@ -59,8 +59,6 @@ export default function PlaylistDetail() {
       setDeletingPlaylist(false);
     }
   };
-
-  // ─── Loading ────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="flex justify-center items-center h-64">
       <div className="w-8 h-8 border-4 border-[#C85C2C] border-t-transparent rounded-full animate-spin" />
@@ -81,19 +79,13 @@ export default function PlaylistDetail() {
 
   return (
     <div className="w-full pb-10">
-
-      {/* Back link */}
       <Link
         to="/playlists"
         className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 font-medium mb-6 transition-colors"
       >
         <FaArrowLeft className="text-xs" /> Back to Playlists
       </Link>
-
-      {/* ─── Playlist Hero ─────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-6 mb-8 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-
-        {/* Cover */}
         <div className="w-full sm:w-64 aspect-video sm:aspect-auto flex-shrink-0 bg-gray-100">
           {coverThumb ? (
             <img
@@ -109,7 +101,6 @@ export default function PlaylistDetail() {
           )}
         </div>
 
-        {/* Details */}
         <div className="flex flex-col justify-between p-5 sm:p-6 flex-1 min-w-0">
           <div>
             <h1 className="text-2xl font-black text-gray-900 tracking-tight mb-1">{playlist.name}</h1>
@@ -149,8 +140,6 @@ export default function PlaylistDetail() {
           </div>
         </div>
       </div>
-
-      {/* ─── Video Grid — same layout as Home ──────────────────────────── */}
       {videos.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
           <FaPlay className="text-4xl text-gray-200 mx-auto mb-3" />
